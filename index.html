@@ -107,15 +107,50 @@ nav button.on{color:var(--brand)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .daylist .bk{margin-bottom:8px}
 .hidden{display:none!important}
+/* auth */
+.auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px 18px;max-width:440px;margin:0 auto}
+.auth .logo{text-align:center;margin-bottom:22px}
+.auth .logo b{display:block;font-size:56px;line-height:1.1}
+.auth .logo h1{margin:6px 0 2px;font-size:24px;font-weight:800;color:var(--brand2)}
+.auth .logo p{margin:0;color:var(--muted);font-size:14px}
+.auth .seg{margin-bottom:16px}
+.auth .err{background:var(--badSoft);color:var(--bad);border-radius:10px;padding:10px;font-size:14px;margin-bottom:12px;text-align:center}
+.auth .hint{font-size:12px;color:var(--muted);margin-top:4px}
+.hbtns{display:flex;gap:6px}
+.hbtn{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:7px 10px;font-weight:700;font-size:13px;cursor:pointer}
+.hello{font-size:15px;font-weight:700;margin-top:6px}
+.banner{background:var(--warnSoft);border:1px solid #f3cf9f;border-radius:14px;padding:12px;margin-bottom:12px;font-size:14px;line-height:1.7}
+.banner .r{display:flex;gap:8px;margin-top:8px}
+.banner button{flex:1;border:0;border-radius:10px;padding:10px;font-weight:700;cursor:pointer}
+.loading{min-height:100vh;display:grid;place-items:center;color:var(--muted)}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="loading" id="vLoading">جاري التحميل…</div>
+
+<!-- Auth screen -->
+<div class="auth hidden" id="vAuth">
+  <div class="logo"><b>🏡</b><h1>حجوزات الاستراحة</h1><p>سجّل دخولك برقم جوالك</p></div>
+  <div class="seg" id="authSeg">
+    <button data-m="login" class="on">تسجيل الدخول</button>
+    <button data-m="signup">تسجيل جديد</button>
+  </div>
+  <form id="authForm" autocomplete="on">
+    <div class="err hidden" id="authErr"></div>
+    <div class="field hidden" id="nameField"><label>الاسم (يظهر لك عند الدخول)</label><input id="aName" autocomplete="name" placeholder="مثال: أبو فهد"></div>
+    <div class="field"><label>رقم الجوال</label><input id="aPhone" type="tel" inputmode="tel" autocomplete="username" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right" required></div>
+    <div class="field"><label>كلمة المرور</label><input id="aPass" type="password" autocomplete="current-password" required><div class="hint" id="passHint">6 أحرف أو أرقام على الأقل</div></div>
+    <button type="submit" class="btn btn-main" id="authBtn">دخول</button>
+  </form>
+</div>
+
+<div class="app hidden" id="vApp">
   <header>
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h1>🏡 حجوزات الاستراحة</h1>
-      <button id="bkBtn" style="border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:10px;padding:7px 11px;font-weight:700;font-size:13px;cursor:pointer">💾 نسخ احتياطي</button>
+      <div class="hbtns"><button class="hbtn" id="bkBtn">💾 نسخ</button><button class="hbtn" id="logoutBtn">خروج</button></div>
     </div>
+    <div class="hello" id="hello"></div>
     <div class="sub" id="todayLbl"></div>
     <div class="stats">
       <div class="stat"><b id="stCount">0</b><span>حجوزات الشهر</span></div>
@@ -126,6 +161,10 @@ nav button.on{color:var(--brand)}
   <div class="sync" id="sync">جاري التحميل…</div>
 
   <main>
+    <div class="banner hidden" id="migBanner">
+      📦 لقيت <b id="migCount"></b> حجز محفوظ على هذا الجوال من النسخة السابقة. تبي تنقلها لحسابك؟
+      <div class="r"><button id="migNo" style="background:#fff">لا</button><button id="migYes" style="background:var(--brand);color:#fff">انقلها</button></div>
+    </div>
     <!-- Calendar -->
     <section id="vCal">
       <div class="card">
@@ -204,7 +243,7 @@ nav button.on{color:var(--brand)}
 <div class="overlay" id="ovBackup"><div class="sheet">
   <div class="grab"></div>
   <h3><span>النسخ الاحتياطي</span><button class="iconbtn" data-close>✕</button></h3>
-  <p style="margin:0 0 6px;color:var(--muted);font-size:14px;line-height:1.7">الحجوزات محفوظة داخل هذا الجوال. خذ نسخة احتياطية كل فترة واحفظها (في الملفات أو أرسلها لنفسك بالواتساب)، وتقدر تسترجعها لو غيّرت الجوال أو مسحت المتصفح.</p>
+  <p style="margin:0 0 6px;color:var(--muted);font-size:14px;line-height:1.7">حجوزاتك محفوظة أونلاين في حسابك، وتلقاها من أي جوال تسجّل دخولك منه. النسخة الاحتياطية اختيارية، وتفيدك لو تبي نسخة على جوالك أو تنقل حجوزات من ملف قديم.</p>
   <div class="dateinfo" id="bkInfo" style="margin-bottom:14px"></div>
   <button class="btn btn-main" id="exportBtn">⬇️ تنزيل نسخة احتياطية</button>
   <label class="btn" style="display:block;text-align:center;background:#fff;border:1px solid var(--line);margin-top:10px">⬆️ استرجاع من نسخة<input type="file" id="importFile" accept=".json,application/json" hidden></label>
@@ -212,7 +251,25 @@ nav button.on{color:var(--brand)}
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+/* =========================================================
+   ⚙️ إعدادات Firebase — الصق هنا firebaseConfig من مشروعك
+   (Project settings ← Your apps ← Web app)
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAfozc6_TY-qotY54lGJONaONFMHyh-BRA",
+  authDomain: "istiraha-f4392.firebaseapp.com",
+  projectId: "istiraha-f4392",
+  storageBucket: "istiraha-f4392.firebasestorage.app",
+  messagingSenderId: "65496635556",
+  appId: "1:65496635556:web:663bbdfc0433876d4cae31"
+};
+/* ========================================================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 (function(){
 "use strict";
 const $ = s => document.querySelector(s);
@@ -244,21 +301,143 @@ let store = null;    // {save(id,data), remove(id)}
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 function setSync(msg,err){ const s=$('#sync'); s.textContent=msg||''; s.classList.toggle('err',!!err); }
 
-/* ---------- storage ---------- */
-const LS_KEY='istiraha_bookings_v1';
-function localStore(){
-  try{ bookings = JSON.parse(localStorage.getItem(LS_KEY)||'{}')||{}; }catch(e){ bookings={}; }
-  const persist=()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(bookings)); }catch(e){} };
-  return {
-    save:async(id,data)=>{ bookings[id]=data; persist(); render(); },
-    remove:async(id)=>{ delete bookings[id]; persist(); render(); }
-  };
+/* ---------- Firebase ---------- */
+const LS_KEY='istiraha_bookings_v1';   // old on-device storage (for migration)
+const configured = FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && !String(FIREBASE_CONFIG.apiKey).includes('ضع');
+let auth=null, fdb=null, unsub=null, currentUid=null;
+
+function showView(v){
+  $('#vLoading').classList.toggle('hidden',v!=='loading');
+  $('#vAuth').classList.toggle('hidden',v!=='auth');
+  $('#vApp').classList.toggle('hidden',v!=='app');
+  $('nav').classList.toggle('hidden',v!=='app');
 }
+
+// phone -> normalized digits (Saudi numbers become 9665XXXXXXXX)
+function normPhone(raw){
+  let p=String(raw||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/\D/g,'');
+  if(p.startsWith('00')) p=p.slice(2);
+  if(p.startsWith('05') && p.length===10) p='966'+p.slice(1);
+  else if(p.startsWith('5') && p.length===9) p='966'+p;
+  return p;
+}
+const phoneEmail = p => p+'@istiraha-users.app';
+
+function startData(uid){
+  currentUid=uid;
+  const col=collection(fdb,'users',uid,'bookings');
+  let gotLive=false;
+  setSync('جاري تحميل حجوزاتك…');
+  const timer=setTimeout(()=>{ if(!gotLive) setSync('ما فيه اتصال — تشوف آخر نسخة محفوظة، وأي تعديل ينرفع لما يرجع النت',true); },10000);
+  unsub=onSnapshot(col,{includeMetadataChanges:true},snap=>{
+    const next={};
+    snap.forEach(d=>{ next[d.id]=d.data(); });
+    bookings=next;
+    if(!snap.metadata.fromCache){ gotLive=true; clearTimeout(timer); setSync(snap.metadata.hasPendingWrites?'جاري الرفع…':''); }
+    render();
+  },err=>{ clearTimeout(timer); setSync('تعذّر تحميل الحجوزات: '+(err.code||''),true); });
+  const ref=id=>doc(fdb,'users',uid,'bookings',id);
+  // writes apply locally right away (offline-friendly); errors surface as a toast
+  store={
+    save:(id,data)=>{ setDoc(ref(id),data).catch(e=>toast('تعذّر الحفظ: '+(e.code||''))); return Promise.resolve(); },
+    remove:(id)=>{ deleteDoc(ref(id)).catch(e=>toast('تعذّر الحذف: '+(e.code||''))); return Promise.resolve(); }
+  };
+  checkMigration();
+}
+function stopData(){ if(unsub){ unsub(); unsub=null; } bookings={}; store=null; currentUid=null; }
+
+async function writeMany(entries){
+  // batches of up to 450 docs
+  for(let i=0;i<entries.length;i+=450){
+    const b=writeBatch(fdb);
+    entries.slice(i,i+450).forEach(([id,data])=>b.set(doc(fdb,'users',currentUid,'bookings',id),data));
+    await b.commit();
+  }
+}
+
+/* ---------- migration from on-device version ---------- */
+function oldLocal(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'{}')||{}; }catch(e){ return {}; } }
+function checkMigration(){
+  let skip=false; try{ skip=localStorage.getItem('istiraha_mig_done')==='1'; }catch(e){}
+  const n=Object.values(oldLocal()).filter(b=>b&&b.date).length;
+  $('#migBanner').classList.toggle('hidden',skip||!n);
+  $('#migCount').textContent=n;
+}
+function migDone(){ try{ localStorage.setItem('istiraha_mig_done','1'); }catch(e){} $('#migBanner').classList.add('hidden'); }
+$('#migNo').addEventListener('click',migDone);
+$('#migYes').addEventListener('click',async()=>{
+  const entries=Object.entries(oldLocal()).filter(([,b])=>b&&b.date);
+  try{ await writeMany(entries); migDone(); toast('تم نقل '+entries.length+' حجز لحسابك ✓'); }
+  catch(e){ toast('تعذّر النقل، تأكد من الاتصال وحاول مرة ثانية'); }
+});
+
+/* ---------- auth UI ---------- */
+let authMode='login';
+$('#authSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  authMode=b.dataset.m;
+  document.querySelectorAll('#authSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#nameField').classList.toggle('hidden',authMode!=='signup');
+  $('#aName').required = authMode==='signup';
+  $('#authBtn').textContent = authMode==='signup'?'إنشاء الحساب':'دخول';
+  $('#aPass').autocomplete = authMode==='signup'?'new-password':'current-password';
+  $('#authErr').classList.add('hidden');
+});
+const AUTH_ERR={
+  'auth/invalid-credential':'رقم الجوال أو كلمة المرور غير صحيحة',
+  'auth/wrong-password':'كلمة المرور غير صحيحة',
+  'auth/user-not-found':'ما فيه حساب بهذا الرقم — اختر «تسجيل جديد»',
+  'auth/email-already-in-use':'هذا الرقم مسجّل من قبل — اختر «تسجيل الدخول»',
+  'auth/weak-password':'كلمة المرور لازم تكون 6 أحرف أو أرقام على الأقل',
+  'auth/too-many-requests':'محاولات كثيرة، انتظر شوي وحاول مرة ثانية',
+  'auth/network-request-failed':'ما فيه اتصال بالإنترنت',
+  'auth/operation-not-allowed':'تسجيل الدخول بالإيميل وكلمة المرور غير مفعّل في Firebase'
+};
+function authError(msg){ const e=$('#authErr'); e.textContent=msg; e.classList.remove('hidden'); }
+$('#authForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!auth) return;
+  const phone=normPhone($('#aPhone').value), pass=$('#aPass').value, name=$('#aName').value.trim();
+  if(phone.length<8||phone.length>15) return authError('اكتب رقم جوال صحيح');
+  if(pass.length<6) return authError(AUTH_ERR['auth/weak-password']);
+  if(authMode==='signup' && !name) return authError('اكتب اسمك');
+  const btn=$('#authBtn'), label=btn.textContent; btn.disabled=true; btn.textContent='لحظة…';
+  try{
+    if(authMode==='signup'){
+      const cred=await createUserWithEmailAndPassword(auth,phoneEmail(phone),pass);
+      await updateProfile(cred.user,{displayName:name});
+      await setDoc(doc(fdb,'users',cred.user.uid),{name,phone,createdAt:new Date().toISOString()});
+      $('#hello').textContent='أهلًا '+name+' 👋';
+    }else{
+      await signInWithEmailAndPassword(auth,phoneEmail(phone),pass);
+    }
+    $('#aPass').value='';
+  }catch(err){
+    authError(AUTH_ERR[err.code]||('صار خطأ: '+(err.code||err.message)));
+  }finally{ btn.disabled=false; btn.textContent=label; }
+});
+$('#logoutBtn').addEventListener('click',()=>{ if(auth) signOut(auth); });
+
 function initStore(){
-  store = localStore();
-  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); setSync(''); }
-  catch(e){ setSync('المتصفح لا يسمح بالحفظ — افتح الملف من Safari أو Chrome',true); }
-  render();
+  if(!configured){
+    showView('auth');
+    authError('التطبيق يحتاج إعدادات Firebase — الصق firebaseConfig في أعلى الملف');
+    $('#authBtn').disabled=true; return;
+  }
+  const app=initializeApp(FIREBASE_CONFIG);
+  auth=getAuth(app);
+  try{ fdb=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})}); }
+  catch(e){ fdb=getFirestore(app); }
+  onAuthStateChanged(auth,user=>{
+    stopData();
+    if(user){
+      $('#hello').textContent='أهلًا '+(user.displayName||'')+' 👋';
+      showView('app'); render(); startData(user.uid);
+    }else{
+      $('#authSeg button[data-m=login]').click();
+      showView('auth'); render();
+    }
+  });
 }
 
 /* ---------- backup ---------- */
@@ -279,10 +458,12 @@ $('#importFile').addEventListener('change',async e=>{
     const obj=JSON.parse(await f.text());
     const incoming=(obj && obj.bookings) || obj;
     if(!incoming || typeof incoming!=='object') throw 0;
-    let n=0;
-    Object.entries(incoming).forEach(([id,b])=>{ if(b && b.date){ bookings[id]=b; n++; } });
-    try{ localStorage.setItem(LS_KEY,JSON.stringify(bookings)); }catch(_){}
-    render(); close($('#ovBackup')); toast('تم استرجاع '+n+' حجز ✓');
+    const entries=Object.entries(incoming).filter(([,b])=>b && b.date);
+    if(!entries.length) throw 0;
+    if(!currentUid){ toast('سجّل دخولك أول'); return; }
+    toast('جاري الاسترجاع…');
+    try{ await writeMany(entries); }catch(_){ toast('تعذّر الاسترجاع، تأكد من الاتصال'); return; }
+    close($('#ovBackup')); toast('تم استرجاع '+entries.length+' حجز ✓');
   }catch(_){ toast('الملف غير صالح'); }
   e.target.value='';
 });
