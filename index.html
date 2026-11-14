@@ -48,6 +48,13 @@ main{padding:12px 14px}
 .day .h{font-size:10px;color:var(--muted)}
 .day.out{visibility:hidden}
 .day.past{opacity:.55}
+.day.ended{background:#e2e0dc;opacity:1}
+.day.ended .g{color:#8a8a86}
+.ended .dot{background:#9b9b97}
+.bk.ended{background:#f3f2ef}
+.bk.ended .date{background:#e2e0dc;color:#7d7d79}
+.bk.ended .name{color:#6f6f6b}
+.bk.ended .badge{background:#e6e4e0;color:#85857f}
 .day.today{border-color:var(--brand)}
 .day.paid{background:var(--okSoft)}
 .day.unpaid{background:var(--warnSoft)}
@@ -186,6 +193,7 @@ nav button.on{color:var(--brand)}
         <div class="legend">
           <span><i style="background:var(--okSoft);border:1px solid var(--ok)"></i>محجوز ودُفع العربون</span>
           <span><i style="background:var(--warnSoft);border:1px solid var(--warn)"></i>محجوز بدون عربون</span>
+          <span><i style="background:#e2e0dc;border:1px solid #9b9b97"></i>حجز منتهي</span>
           <span><i style="background:#faf8f4;border:1px solid var(--line)"></i>متاح</span>
         </div>
       </div>
@@ -517,7 +525,7 @@ function renderCal(){
     let cls='day';
     if(ds<t) cls+=' past';
     if(ds===t) cls+=' today';
-    if(list.length){ cls += list.every(b=>b.depositPaid||b.fullPaid) ? ' paid' : ' unpaid'; }
+    if(list.length){ cls += ds<t ? ' ended' : (list.every(b=>b.depositPaid||b.fullPaid) ? ' paid' : ' unpaid'); }
     h+='<div class="'+cls+'" data-d="'+ds+'">'+(list.length?'<span class="dot"></span>':'')+'<span class="g">'+d+'</span>'+(fmtHDay?'<span class="h">'+esc(fmtHDay.format(date))+'</span>':'')+'</div>';
   }
   $('#cal').innerHTML=h;
@@ -525,7 +533,8 @@ function renderCal(){
 function bkCard(b, quick){
   const d=parse(b.date), st=statusOf(b);
   const remain=(Number(b.price)||0)-collected(b);
-  return '<div class="card bk" data-id="'+esc(b.id)+'">'+
+  const ended=b.date<todayStr();
+  return '<div class="card bk'+(ended?' ended':'')+'" data-id="'+esc(b.id)+'">'+
     '<div class="date"><b>'+d.getDate()+'</b><span>'+esc(fmtGShortM.format(d))+'</span></div>'+
     '<div class="info"><div class="name">'+esc(b.name||'بدون اسم')+'</div>'+
     '<div class="meta">'+esc(fmtDay.format(d))+(fmtH?' · '+esc(hij(d)):'')+'</div>'+
@@ -533,7 +542,7 @@ function bkCard(b, quick){
     (b.price?'<span class="badge b-muted">الإيجار '+money(b.price)+'</span>':'')+
     (!b.fullPaid && remain>0 && b.price?'<span class="badge b-bad">المتبقي '+money(remain)+'</span>':'')+
     '</div></div>'+
-    (quick && !b.depositPaid && !b.fullPaid ? '<button class="quick" data-quick="'+esc(b.id)+'">✓ دفع</button>' : '')+
+    (quick && !ended && !b.depositPaid && !b.fullPaid ? '<button class="quick" data-quick="'+esc(b.id)+'">✓ دفع</button>' : '')+
   '</div>';
 }
 function renderList(){
